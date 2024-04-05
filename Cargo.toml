@@ -1,0 +1,40 @@
+[package]
+name = "h3o-wasm"
+version = "0.6.2-alpha.8"
+authors = ["Sylvain Laperche <sylvain.laperche@gmail.com>", "Julien Colot <julien.colot@gmail.com>"]
+edition = "2021"
+description = "An *experimental* WASM package from Rust implementation of the H3 geospatial indexing system"
+documentation = "https://docs.rs/h3o/"
+readme = "README.md"
+homepage = "https://docs.rs/h3o"
+repository = "https://github.com/jcolot/h3o-wasm"
+license = "BSD-3-Clause"
+keywords = ["geography", "geospatial", "gis", "h3", "spatial-index", "wasm"]
+categories = ["science::geo", "no-std"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[package.metadata.release]
+pre-release-commit-message = "release {{version}}"
+pre-release-replacements = [
+  {file="CHANGELOG.md", search="Unreleased", replace="{{version}}", min=1},
+  {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}", min=1},
+  {file="CHANGELOG.md", search="<!-- next-header -->", replace="<!-- next-header -->\n## [Unreleased] - ReleaseDate\n", exactly=1},
+]
+
+[dependencies]
+serde-wasm-bindgen = "0.2"
+wasm-bindgen = "0.2"
+js-sys = "0.3.55"
+geo = "0.28"
+
+
+[dependencies.h3o]
+version = "0.6.2"
+features = ["geo"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
