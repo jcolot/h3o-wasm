@@ -25,11 +25,12 @@ The `h3o-wasm` package is distributed via npm.
 npm install h3o-wasm
 ```
 
-### Cargo
+### Building
 
 * Install the rust toolchain in order to have cargo installed by following
   [this](https://www.rust-lang.org/tools/install) guide.
-* run `cargo install h3o`
+* run `cargo install wasm-bindgen-cli`
+* run `wasm-pack build --target web`
 
 ## Usage
 
