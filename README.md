@@ -25,7 +25,7 @@ The `h3o-wasm` package is distributed via npm.
 npm install h3o-wasm
 ```
 
-### Building
+## Building
 
 * Install the rust toolchain in order to have cargo installed by following
   [this](https://www.rust-lang.org/tools/install) guide.
