@@ -99,8 +99,8 @@ pub fn edgeLength(edge_index: &str, unit: &str) -> Result<f64, JsValue> {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
-pub fn cellToLatLng(hex_index: &str) -> Result<JsValue, JsValue> {
-    let index = u64::from_str_radix(hex_index, 16)
+pub fn cellToLatLng(h3_index: &str) -> Result<JsValue, JsValue> {
+    let index = u64::from_str_radix(h3_index, 16)
         .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
 
     let cell_index = CellIndex::try_from(index)
@@ -120,6 +120,29 @@ pub fn cellToLatLng(hex_index: &str) -> Result<JsValue, JsValue> {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
+pub fn cellToParent(h3_index: &str, res: u8) -> Result<JsValue, JsValue> {
+    // Try converting the input h3Index string to a CellIndex
+    let h3_index_u64 = u64::from_str_radix(h3_index, 16)
+        .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
+
+    let cell_index = CellIndex::try_from(h3_index_u64)
+        .map_err(|e| JsValue::from_str(&format!("Invalid H3 index: {}", e)))?;
+
+    // Try converting the resolution
+    let resolution = Resolution::try_from(res)
+        .map_err(|e| JsValue::from_str(&format!("Invalid resolution: {}", e)))?;
+
+    // Get the parent cell index at the given resolution
+    let parent = cell_index
+        .parent(resolution)
+        .ok_or_else(|| JsValue::from_str("Failed to find parent at given resolution"))?;
+
+    // Return the parent cell index as a string
+    Ok(JsValue::from_str(&parent.to_string()))
+}
+
+#[allow(non_snake_case)]
+#[wasm_bindgen]
 pub fn latLngToCell(lat: f64, lng: f64, resolution: u8) -> Result<JsValue, JsValue> {
     let ll = LatLng::new(lat, lng).map_err(|e| JsValue::from_str(&e.to_string()))?;
     let resolution = Resolution::try_from(resolution).map_err(|e| JsValue::from_str(&e.to_string()))?;
@@ -128,7 +151,6 @@ pub fn latLngToCell(lat: f64, lng: f64, resolution: u8) -> Result<JsValue, JsVal
     Ok(JsValue::from_str(&cellIndex.to_string()))
 }
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[allow(non_snake_case)]
 #[wasm_bindgen]
 pub fn polygonToCells(polygon_js: &JsValue, resolution_js: u8) -> Result<JsValue, JsValue> {
@@ -146,12 +168,11 @@ pub fn polygonToCells(polygon_js: &JsValue, resolution_js: u8) -> Result<JsValue
         .collect();
     let geo_polygon = GeoPolygon::new(LineString(exterior_coords), vec![]);
 
-    // Convert geo::Polygon<f64> to your Polygon
+    // Convert geo::Polygon<f64> to Polygon
     let polygon = Polygon::from_degrees(geo_polygon)
         .map_err(|_| JsValue::from_str("Failed to create polygon from coordinates"))?;
 
     let config = PolyfillConfig::new(resolution);
-
 
     let cells_iter: Box<dyn Iterator<Item = CellIndex>> = Box::new(polygon.to_cells(config));
 
@@ -160,3 +181,4 @@ pub fn polygonToCells(polygon_js: &JsValue, resolution_js: u8) -> Result<JsValue
 
     Ok(JsValue::from(cells_array))
 }
+
