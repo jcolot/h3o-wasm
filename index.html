@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>H3O WASM vs H3.js Performance Comparison</title>
+  <title>H3O WASM vs H3-js Performance Comparison</title>
   <style>
       body {
           font-family: monospace, sans-serif;
@@ -26,6 +26,11 @@
       }
       th {
           background-color: #333;
+      }
+      .result {
+          max-height: 100px;
+          overflow: hidden;
+          text-overflow: ellipsis;
       }
   </style>
 </head>
@@ -135,7 +140,11 @@
     await init();
 
     const updateTable = (id, value) => {
-      document.getElementById(id).textContent = value;
+      const div =document.createElement("div");
+      div.className = "result";
+      div.textContent = value;
+      document.getElementById(id).innerHTML = "";
+      document.getElementById(id).appendChild(div);
     };
 
     const measureTime = (fn) => {
