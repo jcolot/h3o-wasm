@@ -7,6 +7,17 @@ use serde_wasm_bindgen::from_value;
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
+pub fn isValidCell(hex_index: &str) -> bool {
+    if let Ok(index) = u64::from_str_radix(hex_index, 16) {
+        if let Ok(_) = CellIndex::try_from(index) {
+            return true;
+        }
+    }
+    false
+}
+
+#[allow(non_snake_case)]
+#[wasm_bindgen]
 pub fn getResolution(hex_index: &str) -> Result<u8, JsValue> {
     let index = u64::from_str_radix(hex_index, 16)
         .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;

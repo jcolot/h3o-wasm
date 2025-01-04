@@ -24,14 +24,14 @@ reference `h3-js` implementation
 
 # Available methods and properties
 
-The goal is to provide equivalent to all H3 functions
+The goal is to provide equivalent functions to all H3 functions
 
 h3o
 
 - [ ] .UNITS
 - [ ] .h3IndexToSplitLong(h3Index) ⇒ SplitLong
 - [ ] .splitLongToH3Index(lower, upper) ⇒ H3Index
-- [ ] .isValidCell(h3Index) ⇒ boolean
+- [x] .isValidCell(h3Index) ⇒ boolean
 - [x] .isPentagon(h3Index) ⇒ boolean
 - [ ] .isResClassIII(h3Index) ⇒ boolean
 - [x] .getBaseCellNumber(h3Index) ⇒ number

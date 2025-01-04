@@ -44,7 +44,14 @@
   </thead>
   <tbody>
   <tr>
-    <td>Cell Area Calculation</td>
+    <td>isValidCell</td>
+    <td id="h3o-is-valid-cell-time">Loading...</td>
+    <td id="h3-is-valid-cell-time">Loading...</td>
+    <td id="h3o-is-valid-cell-result">Loading...</td>
+    <td id="h3-is-valid-cell-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>cellArea</td>
     <td id="h3o-cell-area-time">Loading...</td>
     <td id="h3-cell-area-time">Loading...</td>
     <td id="h3o-cell-area-result">Loading...</td>
@@ -140,6 +147,13 @@
 
     // Operations
     const operations = [
+      {
+        name: "isValidCell",
+        wasmId: "h3o-is-valid-cell",
+        jsId: "h3-is-valid-cell",
+        wasmFn: () => h3o.isValidCell(h3Index),
+        jsFn: () => h3.isValidCell(h3Index),
+      },
       {
         name: "Cell Area Calculation",
         wasmId: "h3o-cell-area",
