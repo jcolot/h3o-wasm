@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>H3O WASM vs H3.js Performance Comparison</title>
+  <style>
+      body {
+          font-family: monospace, sans-serif;
+          margin: 0;
+          padding: 16px;
+          background-color: #222;
+          color: white;
+      }
+      table {
+          border-collapse: collapse;
+          width: 100%;
+      }
+      table, th, td {
+          border: 1px solid white;
+      }
+      th, td {
+          padding: 10px;
+          text-align: center;
+          word-wrap: break-word;
+          max-width: 220px;
+      }
+      th {
+          background-color: #333;
+      }
+  </style>
+</head>
+<body>
+<h1>H3O WASM vs H3.js Performance Comparison</h1>
+
+<table>
+  <thead>
+  <tr>
+    <th>Operation</th>
+    <th>WASM Time (ms)</th>
+    <th>H3.js Time (ms)</th>
+    <th>WASM Result</th>
+    <th>H3.js Result</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>Cell Area Calculation</td>
+    <td id="h3o-cell-area-time">Loading...</td>
+    <td id="h3-cell-area-time">Loading...</td>
+    <td id="h3o-cell-area-result">Loading...</td>
+    <td id="h3-cell-area-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>cellToLatLng</td>
+    <td id="h3o-cell-to-latlng-time">Loading...</td>
+    <td id="h3-cell-to-latlng-time">Loading...</td>
+    <td id="h3o-cell-to-latlng-result">Loading...</td>
+    <td id="h3-cell-to-latlng-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>latLngToCell</td>
+    <td id="h3o-latlng-to-cell-time">Loading...</td>
+    <td id="h3-latlng-to-cell-time">Loading...</td>
+    <td id="h3o-latlng-to-cell-result">Loading...</td>
+    <td id="h3-latlng-to-cell-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>getResolution</td>
+    <td id="h3o-get-resolution-time">Loading...</td>
+    <td id="h3-get-resolution-time">Loading...</td>
+    <td id="h3o-get-resolution-result">Loading...</td>
+    <td id="h3-get-resolution-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>isPentagon</td>
+    <td id="h3o-is-pentagon-time">Loading...</td>
+    <td id="h3-is-pentagon-time">Loading...</td>
+    <td id="h3o-is-pentagon-result">Loading...</td>
+    <td id="h3-is-pentagon-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>Edge Length</td>
+    <td id="h3o-edge-length-time">Loading...</td>
+    <td id="h3-edge-length-time">Loading...</td>
+    <td id="h3o-edge-length-result">Loading...</td>
+    <td id="h3-edge-length-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>polygonToCells</td>
+    <td id="h3o-polygon-to-cells-time">Loading...</td>
+    <td id="h3-polygon-to-cells-time">Loading...</td>
+    <td id="h3o-polygon-to-cells-result">Loading...</td>
+    <td id="h3-polygon-to-cells-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>getParent</td>
+    <td id="h3o-get-parent-time">Loading...</td>
+    <td id="h3-get-parent-time">Loading...</td>
+    <td id="h3o-get-parent-result">Loading...</td>
+    <td id="h3-get-parent-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>cellToBoundary</td>
+    <td id="h3o-cell-to-boundary-time">Loading...</td>
+    <td id="h3-cell-to-boundary-time">Loading...</td>
+    <td id="h3o-cell-to-boundary-result">Loading...</td>
+    <td id="h3-cell-to-boundary-result">Loading...</td>
+  </tr>
+  </tbody>
+</table>
+
+<script src="https://unpkg.com/h3-js"></script>
+<script type="module">
+  import init, * as h3o from "./pkg/h3o_wasm.js";
+
+  async function run() {
+    const h3Index = h3.latLngToCell(37.3615593, -122.0553238, 7);
+    const edge = "115283473fffffff";
+    const lat = 40.689247;
+    const lng = -74.044502;
+    const resolution = 9;
+    const polygon = [
+      [37.813318999983238, -122.4089866999972145],
+      [37.7198061999978478, -122.3544736999993603],
+      [37.8151571999998453, -122.4798767000009008],
+    ];
+
+    await init();
+
+    const updateTable = (id, value) => {
+      document.getElementById(id).textContent = value;
+    };
+
+    const measureTime = (fn) => {
+      const start = performance.now();
+      const result = fn();
+      const end = performance.now();
+      return { time: end - start, result };
+    };
+
+    // Operations
+    const operations = [
+      {
+        name: "Cell Area Calculation",
+        wasmId: "h3o-cell-area",
+        jsId: "h3-cell-area",
+        wasmFn: () => h3o.cellArea(h3Index, "km2"),
+        jsFn: () => h3.cellArea(h3Index, h3.UNITS.km2),
+      },
+      {
+        name: "cellToLatLng",
+        wasmId: "h3o-cell-to-latlng",
+        jsId: "h3-cell-to-latlng",
+        wasmFn: () => h3o.cellToLatLng(h3Index),
+        jsFn: () => h3.cellToLatLng(h3Index),
+      },
+      {
+        name: "latLngToCell",
+        wasmId: "h3o-latlng-to-cell",
+        jsId: "h3-latlng-to-cell",
+        wasmFn: () => h3o.latLngToCell(lat, lng, resolution),
+        jsFn: () => h3.latLngToCell(lat, lng, resolution),
+      },
+      {
+        name: "getResolution",
+        wasmId: "h3o-get-resolution",
+        jsId: "h3-get-resolution",
+        wasmFn: () => h3o.getResolution(h3Index),
+        jsFn: () => h3.getResolution(h3Index),
+      },
+      {
+        name: "isPentagon",
+        wasmId: "h3o-is-pentagon",
+        jsId: "h3-is-pentagon",
+        wasmFn: () => h3o.isPentagon(h3Index),
+        jsFn: () => h3.isPentagon(h3Index),
+      },
+      {
+        name: "Edge Length",
+        wasmId: "h3o-edge-length",
+        jsId: "h3-edge-length",
+        wasmFn: () => h3o.edgeLength(edge, "km"),
+        jsFn: () => h3.edgeLength(edge, "km"),
+      },
+      {
+        name: "polygonToCells",
+        wasmId: "h3o-polygon-to-cells",
+        jsId: "h3-polygon-to-cells",
+        wasmFn: () => h3o.polygonToCells(polygon, resolution),
+        jsFn: () => h3.polygonToCells(polygon, resolution),
+      },
+      {
+        name: "getParent",
+        wasmId: "h3o-get-parent",
+        jsId: "h3-get-parent",
+        wasmFn: () => h3o.cellToParent(h3Index, resolution - 2),
+        jsFn: () => h3.cellToParent(h3Index, resolution - 2),
+      },
+      {
+        name: "cellToBoundary",
+        wasmId: "h3o-cell-to-boundary",
+        jsId: "h3-cell-to-boundary",
+        wasmFn: () => h3o.cellToBoundary(h3Index),
+        jsFn: () => h3.cellToBoundary(h3Index),
+      },
+    ];
+
+    // Execute operations and update table
+    for (const op of operations) {
+      const wasm = measureTime(op.wasmFn);
+      const js = measureTime(op.jsFn);
+
+      updateTable(`${op.wasmId}-time`, wasm.time.toFixed(2));
+      updateTable(`${op.jsId}-time`, js.time.toFixed(2));
+      updateTable(`${op.wasmId}-result`, JSON.stringify(wasm.result));
+      updateTable(`${op.jsId}-result`, JSON.stringify(js.result));
+    }
+  }
+
+  run();
+</script>
+</body>
+</html>

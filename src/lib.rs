@@ -120,6 +120,30 @@ pub fn cellToLatLng(h3_index: &str) -> Result<JsValue, JsValue> {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
+pub fn cellToBoundary(h3_index: &str) -> Result<JsValue, JsValue> {
+    let index = u64::from_str_radix(h3_index, 16)
+        .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
+
+    let cell_index = CellIndex::try_from(index)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    let boundary = cell_index.boundary();
+
+    let boundary_array = js_sys::Array::new();
+
+    for latlng in boundary.iter() {
+        let coord_array = js_sys::Array::new();
+        coord_array.push(&JsValue::from_f64(latlng.lat()));
+        coord_array.push(&JsValue::from_f64(latlng.lng()));
+        boundary_array.push(&coord_array.into());
+    }
+
+    Ok(boundary_array.into())
+}
+
+
+#[allow(non_snake_case)]
+#[wasm_bindgen]
 pub fn cellToParent(h3_index: &str, res: u8) -> Result<JsValue, JsValue> {
     // Try converting the input h3Index string to a CellIndex
     let h3_index_u64 = u64::from_str_radix(h3_index, 16)
