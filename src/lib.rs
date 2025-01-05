@@ -31,6 +31,19 @@ pub fn getResolution(hex_index: &str) -> Result<u8, JsValue> {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
+pub fn isResClassIII(hex_index: &str) -> Result<bool, JsValue> {
+    let index = u64::from_str_radix(hex_index, 16)
+        .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
+
+    let cell_index = CellIndex::try_from(index)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    let resolution: Resolution = cell_index.resolution();
+    Ok(resolution.is_class3())
+}
+
+#[allow(non_snake_case)]
+#[wasm_bindgen]
 pub fn getBaseCellNumber(hex_index: &str) -> Result<u32, JsValue> {
     let index = u64::from_str_radix(hex_index, 16)
         .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
@@ -195,6 +208,25 @@ pub fn cellToParent(h3_index: &str, res: u8) -> Result<JsValue, JsValue> {
 
     // Return the parent cell index as a string
     Ok(JsValue::from_str(&parent.to_string()))
+}
+
+#[allow(non_snake_case)]
+#[wasm_bindgen]
+pub fn cellToCenterChild(h3_index: &str, res: u8) -> Result<JsValue, JsValue> {
+    let h3_index_u64 = u64::from_str_radix(h3_index, 16)
+        .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
+
+    let cell_index = CellIndex::try_from(h3_index_u64)
+        .map_err(|e| JsValue::from_str(&format!("Invalid H3 index: {}", e)))?;
+
+    let resolution = Resolution::try_from(res)
+        .map_err(|e| JsValue::from_str(&format!("Invalid resolution: {}", e)))?;
+
+    let center_child = cell_index
+        .center_child(resolution)
+        .ok_or_else(|| JsValue::from_str("Failed to find center child at given resolution"))?;
+
+    Ok(JsValue::from_str(&center_child.to_string()))
 }
 
 #[allow(non_snake_case)]

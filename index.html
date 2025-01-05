@@ -29,7 +29,7 @@
       }
       .result {
           max-height: 100px;
-          overflow: hidden;
+          overflow: scroll;
           text-overflow: ellipsis;
       }
   </style>
@@ -125,6 +125,20 @@
     <td id="h3-cell-to-children-time">Loading...</td>
     <td id="h3o-cell-to-children-result">Loading...</td>
     <td id="h3-cell-to-children-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>cellToCenterChild</td>
+    <td id="h3o-cell-to-center-child-time">Loading...</td>
+    <td id="h3-cell-to-center-child-time">Loading...</td>
+    <td id="h3o-cell-to-center-child-result">Loading...</td>
+    <td id="h3-cell-to-center-child-result">Loading...</td>
+  </tr>
+  <tr>
+    <td>isResClassIII</td>
+    <td id="h3o-is-res-class-iii-time">Loading...</td>
+    <td id="h3-is-res-class-iii-time">Loading...</td>
+    <td id="h3o-is-res-class-iii-result">Loading...</td>
+    <td id="h3-is-res-class-iii-result">Loading...</td>
   </tr>
 
   </tbody>
@@ -245,7 +259,20 @@
         wasmFn: () => h3o.cellToChildren(h3Index, resolution + 1),
         jsFn: () => h3.cellToChildren(h3Index, resolution + 1),
       },
-
+      {
+        name: "cellToCenterChild",
+        wasmId: "h3o-cell-to-center-child",
+        jsId: "h3-cell-to-center-child",
+        wasmFn: () => h3o.cellToCenterChild(h3Index, resolution + 1),
+        jsFn: () => h3.cellToCenterChild(h3Index, resolution + 1),
+      },
+      {
+        name: "isResClassIII",
+        wasmId: "h3o-is-res-class-iii",
+        jsId: "h3-is-res-class-iii",
+        wasmFn: () => h3o.isResClassIII(h3Index),
+        jsFn: () => h3.isResClassIII(h3Index),
+      }
     ];
 
     // Execute operations and update table

@@ -12,7 +12,10 @@ WebAssembly for use in JavaScript projects.
 ## Design
 
 **Experimental**: this package compiles some functions from `h3o` to WASM. Performance might be slower than the
-reference `h3-js` implementation
+reference `h3-js` implementation.
+
+H3 should also be easy to compile to Wasm, using the emscripten toolchain, changing the flags to use the wasm target instead of asm.js. 
+
 `h3o` is a Rust reimplementation of the H3 geospatial indexing system, designed with the following goals:
 
 - Leverage Rust's strong typing for safer usage.
@@ -33,7 +36,7 @@ h3o
 - [ ] .splitLongToH3Index(lower, upper) ⇒ H3Index
 - [x] .isValidCell(h3Index) ⇒ boolean
 - [x] .isPentagon(h3Index) ⇒ boolean
-- [ ] .isResClassIII(h3Index) ⇒ boolean
+- [x] .isResClassIII(h3Index) ⇒ boolean
 - [x] .getBaseCellNumber(h3Index) ⇒ number
 - [ ] .getIcosahedronFaces(h3Index) ⇒ Array.<number>
 - [x] .getResolution(h3Index) ⇒ number
@@ -43,7 +46,7 @@ h3o
 - [x] .cellToParent(h3Index, res) ⇒ H3Index
 - [x] .cellToChildren(h3Index, res) ⇒ Array.<H3Index>
 - [ ] .cellToChildrenSize(h3Index, res) ⇒ number
-- [ ] .cellToCenterChild(h3Index, res) ⇒ H3Index
+- [x] .cellToCenterChild(h3Index, res) ⇒ H3Index
 - [ ] .cellToChildPos(h3Index, parentRes) ⇒ number
 - [ ] .childPosToCell(childPos, h3Index, childRes) ⇒ H3Index
 - [ ] .gridDisk(h3Index, ringSize) ⇒ Array.<H3Index>
