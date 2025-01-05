@@ -25,7 +25,6 @@ pub fn getResolution(hex_index: &str) -> Result<u8, JsValue> {
     let cell_index = CellIndex::try_from(index)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    // Use the From trait implementation to convert Resolution to u8
     let resolution_value: u8 = cell_index.resolution().into();
     Ok(resolution_value)
 }
@@ -152,6 +151,28 @@ pub fn cellToBoundary(h3_index: &str) -> Result<JsValue, JsValue> {
     Ok(boundary_array.into())
 }
 
+#[allow(non_snake_case)]
+#[wasm_bindgen]
+pub fn cellToChildren(h3_index: &str, res: u8) -> Result<JsValue, JsValue> {
+    let index = u64::from_str_radix(h3_index, 16)
+        .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
+
+    let cell_index = CellIndex::try_from(index)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    let resolution = Resolution::try_from(res)
+        .map_err(|e| JsValue::from_str(&format!("Invalid resolution: {}", e)))?;
+
+    let children = cell_index.children(resolution);
+
+    let children_array = js_sys::Array::new();
+
+    for child in children {
+        children_array.push(&JsValue::from_str(&child.to_string()));
+    }
+
+    Ok(children_array.into())
+}
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]

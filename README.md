@@ -41,7 +41,7 @@ h3o
 - [x] .cellToLatLng(h3Index) ⇒ CoordPair
 - [x] .cellToBoundary(h3Index, [formatAsGeoJson]) ⇒ Array.<CoordPair>
 - [x] .cellToParent(h3Index, res) ⇒ H3Index
-- [ ] .cellToChildren(h3Index, res) ⇒ Array.<H3Index>
+- [x] .cellToChildren(h3Index, res) ⇒ Array.<H3Index>
 - [ ] .cellToChildrenSize(h3Index, res) ⇒ number
 - [ ] .cellToCenterChild(h3Index, res) ⇒ H3Index
 - [ ] .cellToChildPos(h3Index, parentRes) ⇒ number

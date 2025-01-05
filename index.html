@@ -36,15 +36,16 @@
 </head>
 <body>
 <h1>H3O WASM vs H3.js Performance Comparison</h1>
+<p>1000 iterations per operation</p>
 
 <table>
   <thead>
   <tr>
     <th>Operation</th>
     <th>WASM Time (ms)</th>
-    <th>H3.js Time (ms)</th>
+    <th>H3-js Time (ms)</th>
     <th>WASM Result</th>
-    <th>H3.js Result</th>
+    <th>H3-js Result</th>
   </tr>
   </thead>
   <tbody>
@@ -118,6 +119,14 @@
     <td id="h3o-cell-to-boundary-result">Loading...</td>
     <td id="h3-cell-to-boundary-result">Loading...</td>
   </tr>
+  <tr>
+    <td>cellToChildren</td>
+    <td id="h3o-cell-to-children-time">Loading...</td>
+    <td id="h3-cell-to-children-time">Loading...</td>
+    <td id="h3o-cell-to-children-result">Loading...</td>
+    <td id="h3-cell-to-children-result">Loading...</td>
+  </tr>
+
   </tbody>
 </table>
 
@@ -149,8 +158,11 @@
 
     const measureTime = (fn) => {
       const start = performance.now();
-      const result = fn();
+      for (let i = 0; i < 1000; i++) {
+        fn();
+      }
       const end = performance.now();
+      const result = fn();
       return { time: end - start, result };
     };
 
@@ -164,7 +176,7 @@
         jsFn: () => h3.isValidCell(h3Index),
       },
       {
-        name: "Cell Area Calculation",
+        name: "cellArea",
         wasmId: "h3o-cell-area",
         jsId: "h3-cell-area",
         wasmFn: () => h3o.cellArea(h3Index, "km2"),
@@ -199,7 +211,7 @@
         jsFn: () => h3.isPentagon(h3Index),
       },
       {
-        name: "Edge Length",
+        name: "edgeLength",
         wasmId: "h3o-edge-length",
         jsId: "h3-edge-length",
         wasmFn: () => h3o.edgeLength(edge, "km"),
@@ -226,6 +238,14 @@
         wasmFn: () => h3o.cellToBoundary(h3Index),
         jsFn: () => h3.cellToBoundary(h3Index),
       },
+      {
+        name: "cellToChildren",
+        wasmId: "h3o-cell-to-children",
+        jsId: "h3-cell-to-children",
+        wasmFn: () => h3o.cellToChildren(h3Index, resolution + 1),
+        jsFn: () => h3.cellToChildren(h3Index, resolution + 1),
+      },
+
     ];
 
     // Execute operations and update table
