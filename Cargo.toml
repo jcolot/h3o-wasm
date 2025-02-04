@@ -31,10 +31,13 @@ geo = "0.28"
 
 
 [dependencies.h3o]
-version = "0.6.2"
+version = "0.7.1-alpha.2"
 features = ["geo"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 doctest = false
 
+[package.metadata.wasm-pack]
+target = "bundler"
+module = "h3o_wasm_wrapper.js"

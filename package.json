@@ -1,0 +1,21 @@
+{
+  "name": "h3o-wasm",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build-vite": "tsc && vite build",
+    "build": "wasm-pack build --target bundler && node build.js",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.2",
+    "vite": "^6.0.5",
+    "vite-plugin-top-level-await": "^1.4.4",
+    "vite-plugin-wasm": "^3.4.1"
+  },
+  "dependencies": {
+    "h3-js": "^4.1.0"
+  }
+}

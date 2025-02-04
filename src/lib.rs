@@ -1,8 +1,11 @@
 use wasm_bindgen::prelude::*;
-use h3o::{CellIndex, LatLng, Resolution, DirectedEdgeIndex};
-use h3o::geom::{PolyfillConfig, Polygon, ToCells};
+use h3o::{CellIndex, LatLng, DirectedEdgeIndex};
+use h3o::{
+ geom::{ContainmentMode, TilerBuilder},
+ Resolution};
+
 use js_sys::Array;
-use geo::{Coord, LineString, Polygon as GeoPolygon};
+use geo::{Coord, LineString, Polygon};
 use serde_wasm_bindgen::from_value;
 
 #[allow(non_snake_case)]
@@ -18,11 +21,11 @@ pub fn isValidCell(hex_index: &str) -> bool {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
-pub fn getResolution(hex_index: &str) -> Result<u8, JsValue> {
-    let index = u64::from_str_radix(hex_index, 16)
+pub fn getResolution(h3Index: &str) -> Result<u8, JsValue> {
+    let h3_index = u64::from_str_radix(h3Index, 16)
         .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
 
-    let cell_index = CellIndex::try_from(index)
+    let cell_index = CellIndex::try_from(h3_index)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
     let resolution_value: u8 = cell_index.resolution().into();
@@ -44,17 +47,14 @@ pub fn isResClassIII(hex_index: &str) -> Result<bool, JsValue> {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
-pub fn getBaseCellNumber(hex_index: &str) -> Result<u32, JsValue> {
-    let index = u64::from_str_radix(hex_index, 16)
+pub fn getBaseCellNumber(h3Index: &str) -> Result<u32, JsValue> {
+    let h3_index = u64::from_str_radix(h3Index, 16)
         .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
 
-    let cell_index = CellIndex::try_from(index)
+    let cell_index = CellIndex::try_from(h3_index)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    // Convert BaseCell to u8 using the From trait
     let base_cell_u8: u8 = cell_index.base_cell().into();
-
-    // Then convert or cast u8 to u32 to match the function's expected return type
     let base_cell_number = base_cell_u8 as u32;
 
     Ok(base_cell_number)
@@ -67,11 +67,9 @@ pub fn isPentagon(hex_index: &str) -> Result<bool, JsValue> {
     let index = u64::from_str_radix(hex_index, 16)
         .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
 
-    // Use the parsed index to create a CellIndex
     let cell_index = CellIndex::try_from(index)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    // Use the is_pentagon method to determine if the cell is a pentagon
     let pentagon = cell_index.is_pentagon();
 
     Ok(pentagon)
@@ -79,13 +77,13 @@ pub fn isPentagon(hex_index: &str) -> Result<bool, JsValue> {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
-pub fn cellArea(hex_index: &str, unit: &str) -> Result<f64, JsValue> {
+pub fn cellArea(h3Index: &str, unit: &str) -> Result<f64, JsValue> {
     // Attempt to parse the hexadecimal string to a u64
-    let index = u64::from_str_radix(hex_index, 16)
+    let h3_index_u64 = u64::from_str_radix(h3Index, 16)
         .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
 
     // Use the parsed index to create a CellIndex and proceed as before
-    let cell_index = CellIndex::try_from(index)
+    let cell_index = CellIndex::try_from(h3_index_u64)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
     let area = match unit {
@@ -143,6 +141,27 @@ pub fn cellToLatLng(h3_index: &str) -> Result<JsValue, JsValue> {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
+pub fn cellToLngLat(h3_index: &str) -> Result<JsValue, JsValue> {
+    let index = u64::from_str_radix(h3_index, 16)
+        .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
+
+    let cell_index = CellIndex::try_from(index)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    let latlng = LatLng::from(cell_index);
+
+    let lng = latlng.lng();
+    let lat = latlng.lat();
+
+    let lnglat_array = Array::new();
+    lnglat_array.push(&JsValue::from_f64(lng));
+    lnglat_array.push(&JsValue::from_f64(lat));
+
+    Ok(lnglat_array.into())
+}
+
+#[allow(non_snake_case)]
+#[wasm_bindgen]
 pub fn cellToBoundary(h3_index: &str) -> Result<JsValue, JsValue> {
     let index = u64::from_str_radix(h3_index, 16)
         .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
@@ -152,14 +171,20 @@ pub fn cellToBoundary(h3_index: &str) -> Result<JsValue, JsValue> {
 
     let boundary = cell_index.boundary();
 
-    let boundary_array = js_sys::Array::new();
+    // Collect all coordinates into a Vec<JsValue>
+    let boundary_vec: Vec<JsValue> = boundary
+        .iter()
+        .map(|latlng| {
+            let coord_array = js_sys::Array::of2(
+                &JsValue::from_f64(latlng.lat()),
+                &JsValue::from_f64(latlng.lng()),
+            );
+            coord_array.into()
+        })
+        .collect();
 
-    for latlng in boundary.iter() {
-        let coord_array = js_sys::Array::new();
-        coord_array.push(&JsValue::from_f64(latlng.lat()));
-        coord_array.push(&JsValue::from_f64(latlng.lng()));
-        boundary_array.push(&coord_array.into());
-    }
+    // Convert the Vec<JsValue> into a js_sys::Array
+    let boundary_array = js_sys::Array::from(&boundary_vec.into());
 
     Ok(boundary_array.into())
 }
@@ -178,14 +203,16 @@ pub fn cellToChildren(h3_index: &str, res: u8) -> Result<JsValue, JsValue> {
 
     let children = cell_index.children(resolution);
 
-    let children_array = js_sys::Array::new();
+    let children_vec: Vec<_> = children
+        .into_iter()
+        .map(|child| JsValue::from_str(&child.to_string()))
+        .collect();
 
-    for child in children {
-        children_array.push(&JsValue::from_str(&child.to_string()));
-    }
+    let js_array = js_sys::Array::from(&children_vec.into());
 
-    Ok(children_array.into())
+    Ok(js_array.into())
 }
+
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
@@ -197,23 +224,20 @@ pub fn cellToParent(h3_index: &str, res: u8) -> Result<JsValue, JsValue> {
     let cell_index = CellIndex::try_from(h3_index_u64)
         .map_err(|e| JsValue::from_str(&format!("Invalid H3 index: {}", e)))?;
 
-    // Try converting the resolution
     let resolution = Resolution::try_from(res)
         .map_err(|e| JsValue::from_str(&format!("Invalid resolution: {}", e)))?;
 
-    // Get the parent cell index at the given resolution
     let parent = cell_index
         .parent(resolution)
         .ok_or_else(|| JsValue::from_str("Failed to find parent at given resolution"))?;
 
-    // Return the parent cell index as a string
     Ok(JsValue::from_str(&parent.to_string()))
 }
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
-pub fn cellToCenterChild(h3_index: &str, res: u8) -> Result<JsValue, JsValue> {
-    let h3_index_u64 = u64::from_str_radix(h3_index, 16)
+pub fn cellToCenterChild(h3Index: &str, res: u8) -> Result<JsValue, JsValue> {
+    let h3_index_u64 = u64::from_str_radix(h3Index, 16)
         .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
 
     let cell_index = CellIndex::try_from(h3_index_u64)
@@ -241,32 +265,64 @@ pub fn latLngToCell(lat: f64, lng: f64, resolution: u8) -> Result<JsValue, JsVal
 
 #[allow(non_snake_case)]
 #[wasm_bindgen]
+pub fn cellToLocalIj(h3_origin_index: &str, h3_index: &str) -> Result<JsValue, JsValue> {
+
+    let h3_origin_index_u64 = u64::from_str_radix(h3_origin_index, 16)
+            .map_err(|e| JsValue::from_str(&format!("Invalid origin hex string: {}", e)))?;
+
+    let cell_origin_index = CellIndex::try_from(h3_origin_index_u64)
+            .map_err(|e| JsValue::from_str(&format!("Invalid origin H3 index: {}", e)))?;
+
+
+    let h3_index_u64 = u64::from_str_radix(h3_index, 16)
+        .map_err(|e| JsValue::from_str(&format!("Invalid hex string: {}", e)))?;
+
+    let cell_index = CellIndex::try_from(h3_index_u64)
+        .map_err(|e| JsValue::from_str(&format!("Invalid H3 index: {}", e)))?;
+
+
+    let local_ij = cell_index.to_local_ij(cell_origin_index)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    let coords = local_ij.coord;
+    let i = coords.i;
+    let j = coords.j;
+
+    let obj = js_sys::Object::new();
+    js_sys::Reflect::set(&obj, &JsValue::from_str("i"), &JsValue::from(i)).unwrap();
+    js_sys::Reflect::set(&obj, &JsValue::from_str("j"), &JsValue::from(j)).unwrap();
+
+    Ok(obj.into())
+}
+
+#[allow(non_snake_case)]
+#[wasm_bindgen]
 pub fn polygonToCells(polygon_js: &JsValue, resolution_js: u8) -> Result<JsValue, JsValue> {
-    // Convert JavaScript resolution input to Rust type
     let resolution = Resolution::try_from(resolution_js)
         .map_err(|_| JsValue::from_str("Invalid resolution"))?;
 
-    // Deserialize the input JS array to a Vec<Vec<f64>> for lat, lng pairs
     let polygon_coords: Vec<Vec<f64>> = from_value(polygon_js.clone())
         .map_err(|_| JsValue::from_str("Failed to parse polygon coordinates"))?;
 
-    // Convert the Vec<Vec<f64>> to geo::Polygon<f64>
     let exterior_coords: Vec<Coord<f64>> = polygon_coords.iter()
-        .map(|pair| Coord { x: pair[1], y: pair[0] }) // Note: geo::Coord is in x, y order, which corresponds to lng, lat
+        .map(|pair| Coord { x: pair[1], y: pair[0] })
         .collect();
-    let geo_polygon = GeoPolygon::new(LineString(exterior_coords), vec![]);
 
-    // Convert geo::Polygon<f64> to Polygon
-    let polygon = Polygon::from_degrees(geo_polygon)
-        .map_err(|_| JsValue::from_str("Failed to create polygon from coordinates"))?;
+    let polygon = Polygon::new(LineString(exterior_coords), vec![]);
 
-    let config = PolyfillConfig::new(resolution);
+    let mut tiler = TilerBuilder::new(resolution)
+        .containment_mode(ContainmentMode::ContainsBoundary)
+        .build();
 
-    let cells_iter: Box<dyn Iterator<Item = CellIndex>> = Box::new(polygon.to_cells(config));
+    tiler.add(polygon)
+        .map_err(|_| JsValue::from_str("Failed to add polygon to tiler"))?;
 
-    let cells_array = cells_iter.map(|cell_index| JsValue::from_str(&cell_index.to_string()))
-        .collect::<Array>();
+    let cells_iter = tiler.into_coverage();
+
+    let cells_array = js_sys::Array::new();
+    for cell_index in cells_iter {
+        cells_array.push(&JsValue::from_str(&cell_index.to_string()));
+    }
 
     Ok(JsValue::from(cells_array))
 }
-

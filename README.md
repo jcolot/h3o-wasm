@@ -11,8 +11,11 @@ WebAssembly for use in JavaScript projects.
 
 ## Design
 
-**Experimental**: this package compiles some functions from `h3o` to WASM. Performance might be slower than the
-reference `h3-js` implementation.
+**Experimental**: this package compiles some functions from `h3o` to WASM (see check-list). Performance might be slower than the
+reference [`h3-js`](https://github.com/uber/h3-js) implementation in browsers, as the reference implementation compiles the C code to asm.js, which is already
+optimized for the browser. Performance has not been tested in Node.js yet, but it should be faster than the reference. I will add some testing soon.
+I'm adding the functions one by one, as time permits, but it should be complete soon. See available methods below.
+
 
 H3 should also be easy to compile to Wasm, using the emscripten toolchain, changing the flags to use the wasm target instead of asm.js. 
 
@@ -118,6 +121,7 @@ async function run() {
 run();
 ```
 
+### Testing performance (browser)
 An example file is available in the root of the repository, to run it you can use a simple http server
 like `http-server`:
 
